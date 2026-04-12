@@ -35,6 +35,26 @@ public final class AuditRaft {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_auditraft_AppendResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_auditraft_PutRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_auditraft_PutRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_auditraft_PutResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_auditraft_PutResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_auditraft_GetRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_auditraft_GetRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_auditraft_GetResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_auditraft_GetResponse_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -52,12 +72,20 @@ public final class AuditRaft {
       "term\030\001 \001(\003\022\021\n\tleader_id\030\002 \001(\t\022\026\n\016prev_lo" +
       "g_index\030\003 \001(\003\022\025\n\rprev_log_term\030\004 \001(\003\022\025\n\r" +
       "leader_commit\030\006 \001(\003\"/\n\016AppendResponse\022\014\n" +
-      "\004term\030\001 \001(\003\022\017\n\007success\030\002 \001(\0102\233\001\n\023RaftInt" +
-      "ernalService\022>\n\013RequestVote\022\026.auditraft." +
-      "VoteRequest\032\027.auditraft.VoteResponse\022D\n\r" +
-      "AppendEntries\022\030.auditraft.AppendRequest\032" +
-      "\031.auditraft.AppendResponseB\026\n\022com.auditr" +
-      "aft.grpcP\001b\006proto3"
+      "\004term\030\001 \001(\003\022\017\n\007success\030\002 \001(\010\"(\n\nPutReque" +
+      "st\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"1\n\013PutRes" +
+      "ponse\022\017\n\007success\030\001 \001(\010\022\021\n\tleader_id\030\002 \001(" +
+      "\t\"\031\n\nGetRequest\022\013\n\003key\030\001 \001(\t\"@\n\013GetRespo" +
+      "nse\022\017\n\007success\030\001 \001(\010\022\r\n\005value\030\002 \001(\t\022\021\n\tl" +
+      "eader_id\030\003 \001(\t2\233\001\n\023RaftInternalService\022>" +
+      "\n\013RequestVote\022\026.auditraft.VoteRequest\032\027." +
+      "auditraft.VoteResponse\022D\n\rAppendEntries\022" +
+      "\030.auditraft.AppendRequest\032\031.auditraft.Ap" +
+      "pendResponse2\222\001\n\030AuditConfigClientServic" +
+      "e\022:\n\tPutConfig\022\025.auditraft.PutRequest\032\026." +
+      "auditraft.PutResponse\022:\n\tGetConfig\022\025.aud" +
+      "itraft.GetRequest\032\026.auditraft.GetRespons" +
+      "eB\026\n\022com.auditraft.grpcP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -87,6 +115,30 @@ public final class AuditRaft {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_auditraft_AppendResponse_descriptor,
         new java.lang.String[] { "Term", "Success", });
+    internal_static_auditraft_PutRequest_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_auditraft_PutRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_auditraft_PutRequest_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_auditraft_PutResponse_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_auditraft_PutResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_auditraft_PutResponse_descriptor,
+        new java.lang.String[] { "Success", "LeaderId", });
+    internal_static_auditraft_GetRequest_descriptor =
+      getDescriptor().getMessageTypes().get(6);
+    internal_static_auditraft_GetRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_auditraft_GetRequest_descriptor,
+        new java.lang.String[] { "Key", });
+    internal_static_auditraft_GetResponse_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_auditraft_GetResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_auditraft_GetResponse_descriptor,
+        new java.lang.String[] { "Success", "Value", "LeaderId", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
