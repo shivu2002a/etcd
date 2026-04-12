@@ -6,6 +6,8 @@ import com.auditraft.rpc.RaftPeerClient;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
+import io.grpc.protobuf.services.ProtoReflectionService;
+
 import com.auditraft.rpc.AuditConfigClientServiceImpl;
 
 import java.io.IOException;
@@ -28,6 +30,7 @@ public class RaftApplication {
         Server server = ServerBuilder.forPort(port)
                 .addService(new RaftInternalServiceImpl(raftNode))
                 .addService(new AuditConfigClientServiceImpl(raftNode))
+                .addService(ProtoReflectionService.newInstance())
                 .build()
                 .start();
 
