@@ -10,3 +10,29 @@ message VoteRequest { int64 term = 1; string candidate_id = 2; int64 last_log_in
 message VoteResponse { int64 term = 1; bool vote_granted = 2; }
 message AppendRequest { int64 term = 1; string leader_id = 2; int64 prev_log_index = 3; int64 prev_log_term = 4; int64 leader_commit = 6; }
 message AppendResponse { int64 term = 1; bool success = 2; }
+
+// --- Client API ---
+service AuditConfigClientService {
+  rpc PutConfig (PutRequest) returns (PutResponse);
+  rpc GetConfig (GetRequest) returns (GetResponse);
+}
+
+message PutRequest {
+  string key = 1;
+  string value = 2;
+}
+
+message PutResponse {
+  bool success = 1;
+  string leader_id = 2; // If success is false, this tells the client who to retry with
+}
+
+message GetRequest {
+  string key = 1;
+}
+
+message GetResponse {
+  bool success = 1;
+  string value = 2;
+  string leader_id = 3;
+}
