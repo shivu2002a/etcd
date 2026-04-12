@@ -17,12 +17,29 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.rocksdb.Options;
+import org.rocksdb.RocksDB;
+import org.rocksdb.RocksDBException;
+
+import org.rocksdb.Options;
+import org.rocksdb.RocksDB;
+import org.rocksdb.RocksDBException;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 public class RaftNode {
 
     private String knownLeader = null; // Tracks who the current leader is
     
-    // TEMPORARY: In-memory state machine (We will swap this for RocksDB)
-    private final Map<String, String> stateMachine = new ConcurrentHashMap<>();
+    // --- Persistent Storage Engine ---
+    private RocksDB db;
+    private final String dbDir;
+
+    static {
+        // This links the native C++ RocksDB binaries to the JVM
+        RocksDB.loadLibrary();
+    }
 
     public enum State { FOLLOWER, CANDIDATE, LEADER }
 
@@ -40,13 +57,25 @@ public class RaftNode {
     
     // Timers
     private final ScheduledExecutorService timerExecutor = Executors.newScheduledThreadPool(2);
-    private static final int MIN_ELECTION_TIMEOUT = 150;
-    private static final int MAX_ELECTION_TIMEOUT = 300;
-    private static final int HEARTBEAT_INTERVAL = 50;
+    private static final int MIN_ELECTION_TIMEOUT = 2000;
+    private static final int MAX_ELECTION_TIMEOUT = 4000;
+    private static final int HEARTBEAT_INTERVAL = 500;
 
     public RaftNode(String nodeId) {
+
         this.nodeId = nodeId;
         this.lastHeartbeatTime = System.currentTimeMillis();
+
+        // Isolate each node's data in its own folder
+        this.dbDir = "./raft-data/" + nodeId;
+        try {
+            Files.createDirectories(Paths.get(dbDir));
+            Options options = new Options().setCreateIfMissing(true);
+            this.db = RocksDB.open(options, dbDir);
+            System.out.println("💾 [" + nodeId + "] RocksDB initialized at " + dbDir);
+        } catch (Exception e) {
+            throw new RuntimeException("CRITICAL: Failed to initialize RocksDB for " + nodeId, e);
+        }
         startElectionTimer();
     }
 
@@ -77,11 +106,22 @@ public class RaftNode {
     }
 
     public void putData(String key, String value) {
-        stateMachine.put(key, value);
+        try {
+            // RocksDB operates exclusively on byte arrays for maximum performance
+            db.put(key.getBytes(), value.getBytes());
+        } catch (RocksDBException e) {
+            System.err.println("❌ [" + nodeId + "] Failed to write to disk: " + e.getMessage());
+        }
     }
 
     public String getData(String key) {
-        return stateMachine.get(key);
+        try {
+            byte[] valueBytes = db.get(key.getBytes());
+            return valueBytes != null ? new String(valueBytes) : null;
+        } catch (RocksDBException e) {
+            System.err.println("❌ [" + nodeId + "] Failed to read from disk: " + e.getMessage());
+            return null;
+        }
     }
 
     // --- Receiver Handlers (Called by gRPC Server) ---
