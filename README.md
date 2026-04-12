@@ -1,4 +1,5 @@
 # etcd
+pkill -9 -f java
 
 Run : 
 1. Boot the Cluster:
@@ -26,11 +27,11 @@ grpcurl -plaintext -d '{"key": "max_connections", "value": "5000"}' localhost:50
 >
 (You should see a log print out: 💾 [Node-B] LEADER accepted PutConfig: max_connections=5000)
 
-grpcurl -plaintext -proto src/main/proto/audit_raft.proto -d '{"key": "max_connections"}' localhost:<any replica node port> auditraft.AuditConfigClientService/GetConfig
+grpcurl -plaintext -proto src/main/proto/audit_raft.proto -d '{"key": "max_connections"}' localhost:50053 auditraft.AuditConfigClientService/GetConfig
 
 You'll get the leaderId 
 
-grpcurl -plaintext -proto src/main/proto/audit_raft.proto -d '{"key": "max_connections"}' localhost:<leader node port> auditraft.AuditConfigClientService/GetConfig
+grpcurl -plaintext  src/main/proto/audit_raft.proto -d '{"key": "max_connections"}' localhost:50052 auditraft.AuditConfigClientService/GetConfig
 
 {
   "success": true,
