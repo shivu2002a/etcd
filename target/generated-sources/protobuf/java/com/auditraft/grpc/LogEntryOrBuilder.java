@@ -43,4 +43,16 @@ public interface LogEntryOrBuilder extends
    */
   com.google.protobuf.ByteString
       getValueBytes();
+
+  /**
+   * <code>string entry_type = 5;</code>
+   * @return The entryType.
+   */
+  java.lang.String getEntryType();
+  /**
+   * <code>string entry_type = 5;</code>
+   * @return The bytes for entryType.
+   */
+  com.google.protobuf.ByteString
+      getEntryTypeBytes();
 }

@@ -77,6 +77,37 @@ public final class RaftInternalServiceGrpc {
     return getAppendEntriesMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<com.auditraft.grpc.InstallSnapshotRequest,
+      com.auditraft.grpc.InstallSnapshotResponse> getInstallSnapshotMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "InstallSnapshot",
+      requestType = com.auditraft.grpc.InstallSnapshotRequest.class,
+      responseType = com.auditraft.grpc.InstallSnapshotResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<com.auditraft.grpc.InstallSnapshotRequest,
+      com.auditraft.grpc.InstallSnapshotResponse> getInstallSnapshotMethod() {
+    io.grpc.MethodDescriptor<com.auditraft.grpc.InstallSnapshotRequest, com.auditraft.grpc.InstallSnapshotResponse> getInstallSnapshotMethod;
+    if ((getInstallSnapshotMethod = RaftInternalServiceGrpc.getInstallSnapshotMethod) == null) {
+      synchronized (RaftInternalServiceGrpc.class) {
+        if ((getInstallSnapshotMethod = RaftInternalServiceGrpc.getInstallSnapshotMethod) == null) {
+          RaftInternalServiceGrpc.getInstallSnapshotMethod = getInstallSnapshotMethod =
+              io.grpc.MethodDescriptor.<com.auditraft.grpc.InstallSnapshotRequest, com.auditraft.grpc.InstallSnapshotResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "InstallSnapshot"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.auditraft.grpc.InstallSnapshotRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.auditraft.grpc.InstallSnapshotResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new RaftInternalServiceMethodDescriptorSupplier("InstallSnapshot"))
+              .build();
+        }
+      }
+    }
+    return getInstallSnapshotMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -138,6 +169,13 @@ public final class RaftInternalServiceGrpc {
         io.grpc.stub.StreamObserver<com.auditraft.grpc.AppendResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getAppendEntriesMethod(), responseObserver);
     }
+
+    /**
+     */
+    default void installSnapshot(com.auditraft.grpc.InstallSnapshotRequest request,
+        io.grpc.stub.StreamObserver<com.auditraft.grpc.InstallSnapshotResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getInstallSnapshotMethod(), responseObserver);
+    }
   }
 
   /**
@@ -182,6 +220,14 @@ public final class RaftInternalServiceGrpc {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getAppendEntriesMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void installSnapshot(com.auditraft.grpc.InstallSnapshotRequest request,
+        io.grpc.stub.StreamObserver<com.auditraft.grpc.InstallSnapshotResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getInstallSnapshotMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -212,6 +258,13 @@ public final class RaftInternalServiceGrpc {
     public com.auditraft.grpc.AppendResponse appendEntries(com.auditraft.grpc.AppendRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getAppendEntriesMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public com.auditraft.grpc.InstallSnapshotResponse installSnapshot(com.auditraft.grpc.InstallSnapshotRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getInstallSnapshotMethod(), getCallOptions(), request);
     }
   }
 
@@ -246,10 +299,19 @@ public final class RaftInternalServiceGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getAppendEntriesMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<com.auditraft.grpc.InstallSnapshotResponse> installSnapshot(
+        com.auditraft.grpc.InstallSnapshotRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getInstallSnapshotMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_REQUEST_VOTE = 0;
   private static final int METHODID_APPEND_ENTRIES = 1;
+  private static final int METHODID_INSTALL_SNAPSHOT = 2;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -275,6 +337,10 @@ public final class RaftInternalServiceGrpc {
         case METHODID_APPEND_ENTRIES:
           serviceImpl.appendEntries((com.auditraft.grpc.AppendRequest) request,
               (io.grpc.stub.StreamObserver<com.auditraft.grpc.AppendResponse>) responseObserver);
+          break;
+        case METHODID_INSTALL_SNAPSHOT:
+          serviceImpl.installSnapshot((com.auditraft.grpc.InstallSnapshotRequest) request,
+              (io.grpc.stub.StreamObserver<com.auditraft.grpc.InstallSnapshotResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -308,6 +374,13 @@ public final class RaftInternalServiceGrpc {
               com.auditraft.grpc.AppendRequest,
               com.auditraft.grpc.AppendResponse>(
                 service, METHODID_APPEND_ENTRIES)))
+        .addMethod(
+          getInstallSnapshotMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              com.auditraft.grpc.InstallSnapshotRequest,
+              com.auditraft.grpc.InstallSnapshotResponse>(
+                service, METHODID_INSTALL_SNAPSHOT)))
         .build();
   }
 
@@ -358,6 +431,7 @@ public final class RaftInternalServiceGrpc {
               .setSchemaDescriptor(new RaftInternalServiceFileDescriptorSupplier())
               .addMethod(getRequestVoteMethod())
               .addMethod(getAppendEntriesMethod())
+              .addMethod(getInstallSnapshotMethod())
               .build();
         }
       }

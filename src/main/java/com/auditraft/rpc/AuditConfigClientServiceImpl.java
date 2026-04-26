@@ -62,4 +62,17 @@ public class AuditConfigClientServiceImpl extends AuditConfigClientServiceGrpc.A
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
+
+    @Override
+    public void addServer(com.auditraft.grpc.AddServerRequest request,
+                          StreamObserver<com.auditraft.grpc.AddServerResponse> responseObserver) {
+        raftNode.handleAddServer(request, responseObserver);
+    }
+
+    @Override
+    public void removeServer(com.auditraft.grpc.RemoveServerRequest request,
+                             StreamObserver<com.auditraft.grpc.RemoveServerResponse> responseObserver) {
+        raftNode.handleRemoveServer(request, responseObserver);
+    }
+
 }

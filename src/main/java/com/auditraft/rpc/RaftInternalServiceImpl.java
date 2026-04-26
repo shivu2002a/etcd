@@ -64,4 +64,13 @@ public class RaftInternalServiceImpl extends RaftInternalServiceGrpc.RaftInterna
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
+
+    @Override
+    public void installSnapshot(com.auditraft.grpc.InstallSnapshotRequest request,
+                                StreamObserver<com.auditraft.grpc.InstallSnapshotResponse> responseObserver) {
+        com.auditraft.grpc.InstallSnapshotResponse response = raftNode.handleInstallSnapshot(request);
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
 }

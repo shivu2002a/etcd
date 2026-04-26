@@ -6,6 +6,7 @@ option java_package = "com.auditraft.grpc";
 service RaftInternalService {
   rpc RequestVote (VoteRequest) returns (VoteResponse);
   rpc AppendEntries (AppendRequest) returns (AppendResponse);
+  rpc InstallSnapshot (InstallSnapshotRequest) returns (InstallSnapshotResponse);
 }
 message VoteRequest { 
   int64 term = 1; 
@@ -30,10 +31,26 @@ message AppendRequest {
 
 message AppendResponse { int64 term = 1; bool success = 2; }
 
+// --- InstallSnapshot ---
+message InstallSnapshotRequest {
+  int64 term = 1;
+  string leader_id = 2;
+  int64 last_included_index = 3;
+  int64 last_included_term = 4;
+  bytes data = 5;
+  string cluster_configuration = 6;
+}
+
+message InstallSnapshotResponse {
+  int64 term = 1;
+}
+
 // --- Client API ---
 service AuditConfigClientService {
   rpc PutConfig (PutRequest) returns (PutResponse);
   rpc GetConfig (GetRequest) returns (GetResponse);
+  rpc AddServer (AddServerRequest) returns (AddServerResponse);
+  rpc RemoveServer (RemoveServerRequest) returns (RemoveServerResponse);
 }
 
 message PutRequest {
@@ -56,9 +73,32 @@ message GetResponse {
   string leader_id = 3;
 }
 
+// --- Membership Change Messages ---
+message AddServerRequest {
+  string server_id = 1;
+  string address = 2;
+}
+
+message AddServerResponse {
+  bool success = 1;
+  string status = 2;
+  string leader_id = 3;
+}
+
+message RemoveServerRequest {
+  string server_id = 1;
+}
+
+message RemoveServerResponse {
+  bool success = 1;
+  string status = 2;
+  string leader_id = 3;
+}
+
 message LogEntry {
   int64 term = 1;
   int64 index = 2;
   string key = 3;
   string value = 4;
+  string entry_type = 5;
 }

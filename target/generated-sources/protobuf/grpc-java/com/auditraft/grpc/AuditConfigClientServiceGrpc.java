@@ -80,6 +80,68 @@ public final class AuditConfigClientServiceGrpc {
     return getGetConfigMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<com.auditraft.grpc.AddServerRequest,
+      com.auditraft.grpc.AddServerResponse> getAddServerMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "AddServer",
+      requestType = com.auditraft.grpc.AddServerRequest.class,
+      responseType = com.auditraft.grpc.AddServerResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<com.auditraft.grpc.AddServerRequest,
+      com.auditraft.grpc.AddServerResponse> getAddServerMethod() {
+    io.grpc.MethodDescriptor<com.auditraft.grpc.AddServerRequest, com.auditraft.grpc.AddServerResponse> getAddServerMethod;
+    if ((getAddServerMethod = AuditConfigClientServiceGrpc.getAddServerMethod) == null) {
+      synchronized (AuditConfigClientServiceGrpc.class) {
+        if ((getAddServerMethod = AuditConfigClientServiceGrpc.getAddServerMethod) == null) {
+          AuditConfigClientServiceGrpc.getAddServerMethod = getAddServerMethod =
+              io.grpc.MethodDescriptor.<com.auditraft.grpc.AddServerRequest, com.auditraft.grpc.AddServerResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "AddServer"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.auditraft.grpc.AddServerRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.auditraft.grpc.AddServerResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AuditConfigClientServiceMethodDescriptorSupplier("AddServer"))
+              .build();
+        }
+      }
+    }
+    return getAddServerMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<com.auditraft.grpc.RemoveServerRequest,
+      com.auditraft.grpc.RemoveServerResponse> getRemoveServerMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "RemoveServer",
+      requestType = com.auditraft.grpc.RemoveServerRequest.class,
+      responseType = com.auditraft.grpc.RemoveServerResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<com.auditraft.grpc.RemoveServerRequest,
+      com.auditraft.grpc.RemoveServerResponse> getRemoveServerMethod() {
+    io.grpc.MethodDescriptor<com.auditraft.grpc.RemoveServerRequest, com.auditraft.grpc.RemoveServerResponse> getRemoveServerMethod;
+    if ((getRemoveServerMethod = AuditConfigClientServiceGrpc.getRemoveServerMethod) == null) {
+      synchronized (AuditConfigClientServiceGrpc.class) {
+        if ((getRemoveServerMethod = AuditConfigClientServiceGrpc.getRemoveServerMethod) == null) {
+          AuditConfigClientServiceGrpc.getRemoveServerMethod = getRemoveServerMethod =
+              io.grpc.MethodDescriptor.<com.auditraft.grpc.RemoveServerRequest, com.auditraft.grpc.RemoveServerResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "RemoveServer"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.auditraft.grpc.RemoveServerRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  com.auditraft.grpc.RemoveServerResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new AuditConfigClientServiceMethodDescriptorSupplier("RemoveServer"))
+              .build();
+        }
+      }
+    }
+    return getRemoveServerMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -144,6 +206,20 @@ public final class AuditConfigClientServiceGrpc {
         io.grpc.stub.StreamObserver<com.auditraft.grpc.GetResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetConfigMethod(), responseObserver);
     }
+
+    /**
+     */
+    default void addServer(com.auditraft.grpc.AddServerRequest request,
+        io.grpc.stub.StreamObserver<com.auditraft.grpc.AddServerResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getAddServerMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void removeServer(com.auditraft.grpc.RemoveServerRequest request,
+        io.grpc.stub.StreamObserver<com.auditraft.grpc.RemoveServerResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getRemoveServerMethod(), responseObserver);
+    }
   }
 
   /**
@@ -194,6 +270,22 @@ public final class AuditConfigClientServiceGrpc {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getGetConfigMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void addServer(com.auditraft.grpc.AddServerRequest request,
+        io.grpc.stub.StreamObserver<com.auditraft.grpc.AddServerResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getAddServerMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void removeServer(com.auditraft.grpc.RemoveServerRequest request,
+        io.grpc.stub.StreamObserver<com.auditraft.grpc.RemoveServerResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getRemoveServerMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -227,6 +319,20 @@ public final class AuditConfigClientServiceGrpc {
     public com.auditraft.grpc.GetResponse getConfig(com.auditraft.grpc.GetRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGetConfigMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public com.auditraft.grpc.AddServerResponse addServer(com.auditraft.grpc.AddServerRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getAddServerMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public com.auditraft.grpc.RemoveServerResponse removeServer(com.auditraft.grpc.RemoveServerRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getRemoveServerMethod(), getCallOptions(), request);
     }
   }
 
@@ -264,10 +370,28 @@ public final class AuditConfigClientServiceGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getGetConfigMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<com.auditraft.grpc.AddServerResponse> addServer(
+        com.auditraft.grpc.AddServerRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getAddServerMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<com.auditraft.grpc.RemoveServerResponse> removeServer(
+        com.auditraft.grpc.RemoveServerRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getRemoveServerMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_PUT_CONFIG = 0;
   private static final int METHODID_GET_CONFIG = 1;
+  private static final int METHODID_ADD_SERVER = 2;
+  private static final int METHODID_REMOVE_SERVER = 3;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -293,6 +417,14 @@ public final class AuditConfigClientServiceGrpc {
         case METHODID_GET_CONFIG:
           serviceImpl.getConfig((com.auditraft.grpc.GetRequest) request,
               (io.grpc.stub.StreamObserver<com.auditraft.grpc.GetResponse>) responseObserver);
+          break;
+        case METHODID_ADD_SERVER:
+          serviceImpl.addServer((com.auditraft.grpc.AddServerRequest) request,
+              (io.grpc.stub.StreamObserver<com.auditraft.grpc.AddServerResponse>) responseObserver);
+          break;
+        case METHODID_REMOVE_SERVER:
+          serviceImpl.removeServer((com.auditraft.grpc.RemoveServerRequest) request,
+              (io.grpc.stub.StreamObserver<com.auditraft.grpc.RemoveServerResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -326,6 +458,20 @@ public final class AuditConfigClientServiceGrpc {
               com.auditraft.grpc.GetRequest,
               com.auditraft.grpc.GetResponse>(
                 service, METHODID_GET_CONFIG)))
+        .addMethod(
+          getAddServerMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              com.auditraft.grpc.AddServerRequest,
+              com.auditraft.grpc.AddServerResponse>(
+                service, METHODID_ADD_SERVER)))
+        .addMethod(
+          getRemoveServerMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              com.auditraft.grpc.RemoveServerRequest,
+              com.auditraft.grpc.RemoveServerResponse>(
+                service, METHODID_REMOVE_SERVER)))
         .build();
   }
 
@@ -376,6 +522,8 @@ public final class AuditConfigClientServiceGrpc {
               .setSchemaDescriptor(new AuditConfigClientServiceFileDescriptorSupplier())
               .addMethod(getPutConfigMethod())
               .addMethod(getGetConfigMethod())
+              .addMethod(getAddServerMethod())
+              .addMethod(getRemoveServerMethod())
               .build();
         }
       }

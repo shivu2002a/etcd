@@ -36,6 +36,16 @@ public final class AuditRaft {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_auditraft_AppendResponse_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_auditraft_InstallSnapshotRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_auditraft_InstallSnapshotRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_auditraft_InstallSnapshotResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_auditraft_InstallSnapshotResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_auditraft_PutRequest_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -55,6 +65,26 @@ public final class AuditRaft {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_auditraft_GetResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_auditraft_AddServerRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_auditraft_AddServerRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_auditraft_AddServerResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_auditraft_AddServerResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_auditraft_RemoveServerRequest_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_auditraft_RemoveServerRequest_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_auditraft_RemoveServerResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_auditraft_RemoveServerResponse_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
     internal_static_auditraft_LogEntry_descriptor;
   static final 
@@ -78,22 +108,40 @@ public final class AuditRaft {
       "Index\030\003 \001(\003\022\023\n\013prevLogTerm\030\004 \001(\003\022$\n\007entr" +
       "ies\030\005 \003(\0132\023.auditraft.LogEntry\022\024\n\014leader" +
       "Commit\030\006 \001(\003\"/\n\016AppendResponse\022\014\n\004term\030\001" +
-      " \001(\003\022\017\n\007success\030\002 \001(\010\"(\n\nPutRequest\022\013\n\003k" +
-      "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"1\n\013PutResponse\022\017" +
-      "\n\007success\030\001 \001(\010\022\021\n\tleader_id\030\002 \001(\t\"\031\n\nGe" +
-      "tRequest\022\013\n\003key\030\001 \001(\t\"@\n\013GetResponse\022\017\n\007" +
-      "success\030\001 \001(\010\022\r\n\005value\030\002 \001(\t\022\021\n\tleader_i" +
-      "d\030\003 \001(\t\"C\n\010LogEntry\022\014\n\004term\030\001 \001(\003\022\r\n\005ind" +
-      "ex\030\002 \001(\003\022\013\n\003key\030\003 \001(\t\022\r\n\005value\030\004 \001(\t2\233\001\n" +
-      "\023RaftInternalService\022>\n\013RequestVote\022\026.au" +
-      "ditraft.VoteRequest\032\027.auditraft.VoteResp" +
-      "onse\022D\n\rAppendEntries\022\030.auditraft.Append" +
-      "Request\032\031.auditraft.AppendResponse2\222\001\n\030A" +
+      " \001(\003\022\017\n\007success\030\002 \001(\010\"\237\001\n\026InstallSnapsho" +
+      "tRequest\022\014\n\004term\030\001 \001(\003\022\021\n\tleader_id\030\002 \001(" +
+      "\t\022\033\n\023last_included_index\030\003 \001(\003\022\032\n\022last_i" +
+      "ncluded_term\030\004 \001(\003\022\014\n\004data\030\005 \001(\014\022\035\n\025clus" +
+      "ter_configuration\030\006 \001(\t\"\'\n\027InstallSnapsh" +
+      "otResponse\022\014\n\004term\030\001 \001(\003\"(\n\nPutRequest\022\013" +
+      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"1\n\013PutRespons" +
+      "e\022\017\n\007success\030\001 \001(\010\022\021\n\tleader_id\030\002 \001(\t\"\031\n" +
+      "\nGetRequest\022\013\n\003key\030\001 \001(\t\"@\n\013GetResponse\022" +
+      "\017\n\007success\030\001 \001(\010\022\r\n\005value\030\002 \001(\t\022\021\n\tleade" +
+      "r_id\030\003 \001(\t\"6\n\020AddServerRequest\022\021\n\tserver" +
+      "_id\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\"G\n\021AddServerR" +
+      "esponse\022\017\n\007success\030\001 \001(\010\022\016\n\006status\030\002 \001(\t" +
+      "\022\021\n\tleader_id\030\003 \001(\t\"(\n\023RemoveServerReque" +
+      "st\022\021\n\tserver_id\030\001 \001(\t\"J\n\024RemoveServerRes" +
+      "ponse\022\017\n\007success\030\001 \001(\010\022\016\n\006status\030\002 \001(\t\022\021" +
+      "\n\tleader_id\030\003 \001(\t\"W\n\010LogEntry\022\014\n\004term\030\001 " +
+      "\001(\003\022\r\n\005index\030\002 \001(\003\022\013\n\003key\030\003 \001(\t\022\r\n\005value" +
+      "\030\004 \001(\t\022\022\n\nentry_type\030\005 \001(\t2\365\001\n\023RaftInter" +
+      "nalService\022>\n\013RequestVote\022\026.auditraft.Vo" +
+      "teRequest\032\027.auditraft.VoteResponse\022D\n\rAp" +
+      "pendEntries\022\030.auditraft.AppendRequest\032\031." +
+      "auditraft.AppendResponse\022X\n\017InstallSnaps" +
+      "hot\022!.auditraft.InstallSnapshotRequest\032\"" +
+      ".auditraft.InstallSnapshotResponse2\253\002\n\030A" +
       "uditConfigClientService\022:\n\tPutConfig\022\025.a" +
       "uditraft.PutRequest\032\026.auditraft.PutRespo" +
       "nse\022:\n\tGetConfig\022\025.auditraft.GetRequest\032" +
-      "\026.auditraft.GetResponseB\026\n\022com.auditraft" +
-      ".grpcP\001b\006proto3"
+      "\026.auditraft.GetResponse\022F\n\tAddServer\022\033.a" +
+      "uditraft.AddServerRequest\032\034.auditraft.Ad" +
+      "dServerResponse\022O\n\014RemoveServer\022\036.auditr" +
+      "aft.RemoveServerRequest\032\037.auditraft.Remo" +
+      "veServerResponseB\026\n\022com.auditraft.grpcP\001" +
+      "b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -123,36 +171,72 @@ public final class AuditRaft {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_auditraft_AppendResponse_descriptor,
         new java.lang.String[] { "Term", "Success", });
-    internal_static_auditraft_PutRequest_descriptor =
+    internal_static_auditraft_InstallSnapshotRequest_descriptor =
       getDescriptor().getMessageTypes().get(4);
+    internal_static_auditraft_InstallSnapshotRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_auditraft_InstallSnapshotRequest_descriptor,
+        new java.lang.String[] { "Term", "LeaderId", "LastIncludedIndex", "LastIncludedTerm", "Data", "ClusterConfiguration", });
+    internal_static_auditraft_InstallSnapshotResponse_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_auditraft_InstallSnapshotResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_auditraft_InstallSnapshotResponse_descriptor,
+        new java.lang.String[] { "Term", });
+    internal_static_auditraft_PutRequest_descriptor =
+      getDescriptor().getMessageTypes().get(6);
     internal_static_auditraft_PutRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_auditraft_PutRequest_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_auditraft_PutResponse_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(7);
     internal_static_auditraft_PutResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_auditraft_PutResponse_descriptor,
         new java.lang.String[] { "Success", "LeaderId", });
     internal_static_auditraft_GetRequest_descriptor =
-      getDescriptor().getMessageTypes().get(6);
+      getDescriptor().getMessageTypes().get(8);
     internal_static_auditraft_GetRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_auditraft_GetRequest_descriptor,
         new java.lang.String[] { "Key", });
     internal_static_auditraft_GetResponse_descriptor =
-      getDescriptor().getMessageTypes().get(7);
+      getDescriptor().getMessageTypes().get(9);
     internal_static_auditraft_GetResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_auditraft_GetResponse_descriptor,
         new java.lang.String[] { "Success", "Value", "LeaderId", });
+    internal_static_auditraft_AddServerRequest_descriptor =
+      getDescriptor().getMessageTypes().get(10);
+    internal_static_auditraft_AddServerRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_auditraft_AddServerRequest_descriptor,
+        new java.lang.String[] { "ServerId", "Address", });
+    internal_static_auditraft_AddServerResponse_descriptor =
+      getDescriptor().getMessageTypes().get(11);
+    internal_static_auditraft_AddServerResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_auditraft_AddServerResponse_descriptor,
+        new java.lang.String[] { "Success", "Status", "LeaderId", });
+    internal_static_auditraft_RemoveServerRequest_descriptor =
+      getDescriptor().getMessageTypes().get(12);
+    internal_static_auditraft_RemoveServerRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_auditraft_RemoveServerRequest_descriptor,
+        new java.lang.String[] { "ServerId", });
+    internal_static_auditraft_RemoveServerResponse_descriptor =
+      getDescriptor().getMessageTypes().get(13);
+    internal_static_auditraft_RemoveServerResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_auditraft_RemoveServerResponse_descriptor,
+        new java.lang.String[] { "Success", "Status", "LeaderId", });
     internal_static_auditraft_LogEntry_descriptor =
-      getDescriptor().getMessageTypes().get(8);
+      getDescriptor().getMessageTypes().get(14);
     internal_static_auditraft_LogEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_auditraft_LogEntry_descriptor,
-        new java.lang.String[] { "Term", "Index", "Key", "Value", });
+        new java.lang.String[] { "Term", "Index", "Key", "Value", "EntryType", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

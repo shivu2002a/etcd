@@ -5,6 +5,7 @@ import com.auditraft.grpc.AppendResponse;
 import com.auditraft.grpc.RaftInternalServiceGrpc;
 import com.auditraft.grpc.VoteRequest;
 import com.auditraft.grpc.VoteResponse;
+
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -34,6 +35,10 @@ public class RaftPeerClient {
 
     public void sendAppendEntries(AppendRequest request, StreamObserver<AppendResponse> responseObserver) {
         asyncStub.appendEntries(request, responseObserver);
+    }
+
+    public void sendInstallSnapshot(InstallSnapshotRequest request, StreamObserver<InstallSnapshotResponse> responseObserver) {
+        asyncStub.installSnapshot(request, responseObserver);
     }
 
     public void shutdown() {
