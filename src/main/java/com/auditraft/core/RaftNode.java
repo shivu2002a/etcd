@@ -2,10 +2,9 @@ package com.auditraft.core;
 
 import com.auditraft.grpc.AppendRequest;
 import com.auditraft.grpc.AppendResponse;
+import com.auditraft.grpc.PutResponse;
 import com.auditraft.grpc.VoteRequest;
 import com.auditraft.grpc.VoteResponse;
-import com.auditraft.grpc.LogEntry;
-import java.util.*;
 
 import com.auditraft.rpc.RaftPeerClient;
 import io.grpc.stub.StreamObserver;
@@ -13,11 +12,13 @@ import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -46,18 +47,28 @@ public class RaftNode {
     private long lastHeartbeatTime;
     private long currentElectionTimeout;
     private final Random random = new Random();
-    
+
     private final ScheduledExecutorService timerExecutor = Executors.newScheduledThreadPool(2);
     private static final int MIN_ELECTION_TIMEOUT = 2000;
     private static final int MAX_ELECTION_TIMEOUT = 4000;
     private static final int HEARTBEAT_INTERVAL = 500;
 
-    private long lastLogIndex = 0;
-    private final List<LogEntry> log = new ArrayList<>();
-    
+    // Replicated log (uses LogEntryData, not proto LogEntry)
+    private final ReplicatedLog log = new ReplicatedLog();
+
+    // Leader volatile state (reinitialized on election)
+    private final Map<String, Long> nextIndex = new ConcurrentHashMap<>();
+    private final Map<String, Long> matchIndex = new ConcurrentHashMap<>();
+
+    // State machine application tracking
+    private long lastApplied = 0;
+
+    // Pending client requests: logIndex → StreamObserver<PutResponse>
+    private final Map<Long, StreamObserver<PutResponse>> pendingRequests = new ConcurrentHashMap<>();
+
     public RaftNode(String nodeId) {
         this.nodeId = nodeId;
-        
+
         this.dbDir = "./raft-data/" + nodeId;
         try {
             Files.createDirectories(Paths.get(dbDir));
@@ -79,7 +90,7 @@ public class RaftNode {
     public void addPeer(RaftPeerClient peer) { this.peers.add(peer); }
     public String getNodeId() { return nodeId; }
     public State getState() { return state; }
-    
+
     public String getKnownLeader() {
         lock.readLock().lock();
         try { return knownLeader; } finally { lock.readLock().unlock(); }
@@ -95,8 +106,17 @@ public class RaftNode {
         try { return votedFor; } finally { lock.readLock().unlock(); }
     }
 
+    public ReplicatedLog getLog() {
+        return log;
+    }
+
+    public long getCommitIndex() {
+        lock.readLock().lock();
+        try { return commitIndex; } finally { lock.readLock().unlock(); }
+    }
+
     public void putData(String key, String value) {
-        try { db.put(key.getBytes(), value.getBytes()); } 
+        try { db.put(key.getBytes(), value.getBytes()); }
         catch (RocksDBException e) {}
     }
 
@@ -107,7 +127,39 @@ public class RaftNode {
         } catch (RocksDBException e) { return null; }
     }
 
-    // --- State Transitions (Called by Receivers) ---
+    // --- Leader Entry Append ---
+
+    /**
+     * Leader-only: append a new log entry for a client write.
+     * Stores the observer in pendingRequests and triggers replication.
+     */
+    public void appendEntry(String key, String value, StreamObserver<PutResponse> observer) {
+        lock.writeLock().lock();
+        try {
+            if (this.state != State.LEADER) {
+                // Reject if not leader
+                PutResponse response = PutResponse.newBuilder()
+                        .setSuccess(false)
+                        .setLeaderId(knownLeader != null ? knownLeader : "UNKNOWN")
+                        .build();
+                observer.onNext(response);
+                observer.onCompleted();
+                return;
+            }
+
+            LogEntryData entry = new LogEntryData(currentTerm, key, value);
+            long index = log.append(entry);
+            pendingRequests.put(index, observer);
+            System.out.println("📝 [" + nodeId + "] Appended to log at index " + index + " (term " + currentTerm + ")");
+        } finally {
+            lock.writeLock().unlock();
+        }
+
+        // Trigger immediate replication outside the lock
+        broadcastHeartbeats();
+    }
+
+    // --- State Transitions ---
 
     public void stepDown(long newTerm) {
         lock.writeLock().lock();
@@ -116,6 +168,7 @@ public class RaftNode {
             this.state = State.FOLLOWER;
             this.votedFor = null;
             resetTimer();
+            failPendingRequests();
         } finally { lock.writeLock().unlock(); }
     }
 
@@ -127,28 +180,260 @@ public class RaftNode {
         } finally { lock.writeLock().unlock(); }
     }
 
-    public void resetHeartbeat(AppendRequest request) {
+    /**
+     * Public resetHeartbeat — acquires the write lock, then delegates.
+     */
+    public void resetHeartbeat(long leaderTerm, String leaderId) {
         lock.writeLock().lock();
         try {
-            // Use getters to extract info from the Protobuf request object
-            if (request.getTerm() >= this.currentTerm) {
-                this.knownLeader = request.getLeaderId();
-                this.currentTerm = request.getTerm();
-                this.state = State.FOLLOWER;
-                resetTimer();
+            resetHeartbeatInternal(leaderTerm, leaderId);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
 
-                // 📦 Phase 4: Process incoming Log Entries
-                for (LogEntry entry : request.getEntriesList()) {
-                    // Only apply entries we haven't committed yet
-                    if (entry.getIndex() > this.commitIndex) {
-                        putData(entry.getKey(), entry.getValue());
-                        this.commitIndex = entry.getIndex();
-                        System.out.println("📥 [" + nodeId + "] Replicated & Committed: " + entry.getKey());
-                    }
+    /**
+     * Internal resetHeartbeat — must be called while already holding the write lock.
+     */
+    private void resetHeartbeatInternal(long leaderTerm, String leaderId) {
+        if (leaderTerm >= this.currentTerm) {
+            this.knownLeader = leaderId;
+            this.currentTerm = leaderTerm;
+            this.state = State.FOLLOWER;
+            resetTimer();
+        }
+    }
+
+    // --- Follower AppendEntries Handling ---
+
+    /**
+     * Full Raft AppendEntries receiver (§5.3).
+     * Called by RaftInternalServiceImpl. Acquires write lock internally.
+     */
+    public AppendResponse handleAppendEntries(AppendRequest request) {
+        lock.writeLock().lock();
+        try {
+            long requestTerm = request.getTerm();
+
+            // 1. Reply false if term < currentTerm
+            if (requestTerm < this.currentTerm) {
+                return AppendResponse.newBuilder()
+                        .setTerm(this.currentTerm)
+                        .setSuccess(false)
+                        .build();
+            }
+
+            // Valid leader — reset heartbeat (internal, already holding lock)
+            resetHeartbeatInternal(requestTerm, request.getLeaderId());
+
+            long prevLogIndex = request.getPrevLogIndex();
+            long prevLogTerm = request.getPrevLogTerm();
+
+            // 2. Reply false if log doesn't contain an entry at prevLogIndex with matching term
+            if (prevLogIndex > 0) {
+                long localTerm = log.getTermAt(prevLogIndex);
+                if (localTerm == 0 && prevLogIndex > log.getLastIndex()) {
+                    // We don't have an entry at prevLogIndex
+                    return AppendResponse.newBuilder()
+                            .setTerm(this.currentTerm)
+                            .setSuccess(false)
+                            .build();
                 }
+                if (localTerm != prevLogTerm) {
+                    // Term mismatch at prevLogIndex
+                    return AppendResponse.newBuilder()
+                            .setTerm(this.currentTerm)
+                            .setSuccess(false)
+                            .build();
+                }
+            }
+
+            // 3 & 4. Process entries: conflict resolution and append
+            List<com.auditraft.grpc.LogEntry> entries = request.getEntriesList();
+            long lastNewEntryIndex = prevLogIndex;
+
+            for (int i = 0; i < entries.size(); i++) {
+                com.auditraft.grpc.LogEntry entryProto = entries.get(i);
+                long entryIndex = prevLogIndex + 1 + i;
+                long existingTerm = log.getTermAt(entryIndex);
+
+                if (existingTerm != 0 && entryIndex <= log.getLastIndex()) {
+                    // Entry exists at this index
+                    if (existingTerm != entryProto.getTerm()) {
+                        // Conflict: delete this entry and all that follow
+                        log.truncateFrom(entryIndex);
+                        // Append the new entry
+                        log.append(new LogEntryData(entryProto.getTerm(), entryProto.getKey(), entryProto.getValue()));
+                    }
+                    // else: same term, entry already present — skip
+                } else {
+                    // No entry at this index — append
+                    log.append(new LogEntryData(entryProto.getTerm(), entryProto.getKey(), entryProto.getValue()));
+                }
+                lastNewEntryIndex = entryIndex;
+            }
+
+            // 5. Update commitIndex
+            if (request.getLeaderCommit() > this.commitIndex) {
+                this.commitIndex = Math.min(request.getLeaderCommit(), lastNewEntryIndex);
+                applyCommittedEntries();
+            }
+
+            return AppendResponse.newBuilder()
+                    .setTerm(this.currentTerm)
+                    .setSuccess(true)
+                    .build();
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    // --- Leader AppendResponse Handling ---
+
+    /**
+     * Handle a response from a follower to an AppendEntries RPC.
+     * Called from the async gRPC callback. Acquires write lock internally.
+     */
+    public void handleAppendResponse(String peerId, boolean success, long responseTerm, long lastEntryIndex) {
+        lock.writeLock().lock();
+        try {
+            if (this.state != State.LEADER) return;
+
+            // If response term is higher, step down
+            if (responseTerm > this.currentTerm) {
+                this.currentTerm = responseTerm;
+                this.state = State.FOLLOWER;
+                this.votedFor = null;
+                resetTimer();
+                failPendingRequests();
+                return;
+            }
+
+            if (success) {
+                // Update matchIndex and nextIndex for this peer
+                matchIndex.put(peerId, lastEntryIndex);
+                nextIndex.put(peerId, lastEntryIndex + 1);
+                tryAdvanceCommitIndex();
+            } else {
+                // Decrement nextIndex for this peer (minimum 1)
+                long currentNext = nextIndex.getOrDefault(peerId, 1L);
+                nextIndex.put(peerId, Math.max(currentNext - 1, 1));
             }
         } finally {
             lock.writeLock().unlock();
+        }
+    }
+
+    // --- Commit Index Advancement ---
+
+    /**
+     * Scan for the highest N > commitIndex where a majority of nodes
+     * (including the leader) have matchIndex >= N and log[N].term == currentTerm.
+     * Must be called under write lock.
+     */
+    private void tryAdvanceCommitIndex() {
+        long lastIndex = log.getLastIndex();
+        for (long n = lastIndex; n > commitIndex; n--) {
+            if (log.getTermAt(n) != this.currentTerm) {
+                continue;
+            }
+            // Count replicas: leader always has the entry
+            int replicaCount = 1;
+            for (Long mi : matchIndex.values()) {
+                if (mi >= n) {
+                    replicaCount++;
+                }
+            }
+            int majority = (peers.size() + 1) / 2 + 1;
+            if (replicaCount >= majority) {
+                commitIndex = n;
+                applyCommittedEntries();
+                break;
+            }
+        }
+    }
+
+    // --- State Machine Application ---
+
+    /**
+     * Apply committed entries from lastApplied+1 through commitIndex to RocksDB.
+     * Complete pending client observers on success.
+     * Must be called under write lock.
+     */
+    private void applyCommittedEntries() {
+        while (lastApplied < commitIndex) {
+            lastApplied++;
+            LogEntryData entry = log.getEntry(lastApplied);
+            if (entry == null) break;
+
+            try {
+                db.put(entry.getKey().getBytes(), entry.getValue().getBytes());
+                System.out.println("✅ [" + nodeId + "] Applied entry at index " + lastApplied
+                        + ": " + entry.getKey() + "=" + entry.getValue());
+            } catch (RocksDBException e) {
+                System.err.println("❌ [" + nodeId + "] Failed to apply entry at index " + lastApplied);
+                lastApplied--;
+                break;
+            }
+
+            // Complete pending client observer if present
+            StreamObserver<PutResponse> observer = pendingRequests.remove(lastApplied);
+            if (observer != null) {
+                try {
+                    PutResponse response = PutResponse.newBuilder()
+                            .setSuccess(true)
+                            .setLeaderId(this.nodeId)
+                            .build();
+                    observer.onNext(response);
+                    observer.onCompleted();
+                } catch (Exception e) {
+                    // Observer may have been cancelled
+                    System.err.println("⚠️ [" + nodeId + "] Failed to complete observer at index " + lastApplied);
+                }
+            }
+        }
+    }
+
+    // --- Pending Request Lifecycle ---
+
+    /**
+     * Fail all pending client requests (e.g., on step-down).
+     * Must be called under write lock.
+     */
+    private void failPendingRequests() {
+        String leader = knownLeader != null ? knownLeader : "UNKNOWN";
+        for (Map.Entry<Long, StreamObserver<PutResponse>> entry : pendingRequests.entrySet()) {
+            try {
+                PutResponse response = PutResponse.newBuilder()
+                        .setSuccess(false)
+                        .setLeaderId(leader)
+                        .build();
+                entry.getValue().onNext(response);
+                entry.getValue().onCompleted();
+            } catch (Exception e) {
+                // Observer may have been cancelled
+            }
+        }
+        pendingRequests.clear();
+    }
+
+    // --- Election Safety: Log Up-to-Date Check ---
+
+    /**
+     * Raft §5.4.1: Returns true if the candidate's log is at least as up-to-date as this node's log.
+     */
+    public boolean isLogUpToDate(long candidateLastTerm, long candidateLastIndex) {
+        lock.readLock().lock();
+        try {
+            long myLastTerm = log.getLastTerm();
+            long myLastIndex = log.getLastIndex();
+
+            if (candidateLastTerm != myLastTerm) {
+                return candidateLastTerm > myLastTerm;
+            }
+            return candidateLastIndex >= myLastIndex;
+        } finally {
+            lock.readLock().unlock();
         }
     }
 
@@ -171,21 +456,26 @@ public class RaftNode {
     private void startElection() {
         long electionTerm;
         int majorityNeeded = (peers.size() + 1) / 2 + 1;
-        AtomicInteger votesReceived = new AtomicInteger(1); 
+        AtomicInteger votesReceived = new AtomicInteger(1);
+
+        long lastLogIndex;
+        long lastLogTerm;
 
         lock.writeLock().lock();
         try {
             this.state = State.CANDIDATE;
             this.currentTerm++;
             this.votedFor = this.nodeId;
-            resetTimer(); 
+            resetTimer();
             electionTerm = this.currentTerm;
+            lastLogIndex = log.getLastIndex();
+            lastLogTerm = log.getLastTerm();
             System.out.println("\n🗳️ [" + nodeId + "] Election timeout! Started election for term " + currentTerm);
         } finally { lock.writeLock().unlock(); }
 
         VoteRequest request = VoteRequest.newBuilder()
                 .setTerm(electionTerm).setCandidateId(this.nodeId)
-                .setLastLogIndex(0).setLastLogTerm(0).build();
+                .setLastLogIndex(lastLogIndex).setLastLogTerm(lastLogTerm).build();
 
         for (RaftPeerClient peer : peers) {
             peer.sendVoteRequest(request, new StreamObserver<VoteResponse>() {
@@ -200,7 +490,7 @@ public class RaftNode {
                         }
                     }
                 }
-                @Override public void onError(Throwable t) {} // 🔇 Intentionally blank to stop log spam
+                @Override public void onError(Throwable t) {}
                 @Override public void onCompleted() {}
             });
         }
@@ -209,64 +499,95 @@ public class RaftNode {
     private void transitionToLeader() {
         lock.writeLock().lock();
         try {
-            if (this.state == State.LEADER) return; 
+            if (this.state == State.LEADER) return;
             this.state = State.LEADER;
             this.knownLeader = this.nodeId;
+
+            // Initialize nextIndex and matchIndex for each peer
+            long lastIndex = log.getLastIndex();
+            for (RaftPeerClient peer : peers) {
+                nextIndex.put(peer.getPeerId(), lastIndex + 1);
+                matchIndex.put(peer.getPeerId(), 0L);
+            }
+
             System.out.println("👑 [" + nodeId + "] Won election! Now LEADER for term " + currentTerm);
             timerExecutor.scheduleAtFixedRate(this::broadcastHeartbeats, 0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
         } finally { lock.writeLock().unlock(); }
     }
 
     /**
-     * Entry point for new data. 
-     * The Leader appends to its local log but does NOT write to RocksDB yet.
+     * Build a per-follower AppendRequest with correct prevLogIndex/prevLogTerm/entries/leaderCommit.
+     * Must be called under at least the read lock.
      */
-    public boolean propose(String key, String value) {
-        lock.writeLock().lock();
-        try {
-            if (this.state != State.LEADER) return false;
+    private AppendRequest buildAppendRequestForPeer(String peerId, long currentTermSnapshot) {
+        long peerNextIndex = nextIndex.getOrDefault(peerId, 1L);
+        long prevLogIdx = peerNextIndex - 1;
+        long prevLogTrm = log.getTermAt(prevLogIdx);
+        long lastIndex = log.getLastIndex();
 
-            lastLogIndex++;
-            LogEntry entry = LogEntry.newBuilder()
-                    .setTerm(currentTerm)
-                    .setIndex(lastLogIndex)
-                    .setKey(key)
-                    .setValue(value)
-                    .build();
-            
-            log.add(entry);
-            System.out.println("📝 [" + nodeId + "] Appended to log at index " + lastLogIndex);
-            
-            return true;
-        } finally {
-            lock.writeLock().unlock();
+        AppendRequest.Builder builder = AppendRequest.newBuilder()
+                .setTerm(currentTermSnapshot)
+                .setLeaderId(this.nodeId)
+                .setPrevLogIndex(prevLogIdx)
+                .setPrevLogTerm(prevLogTrm)
+                .setLeaderCommit(this.commitIndex);
+
+        // Add entries from nextIndex through end of log
+        if (peerNextIndex <= lastIndex) {
+            List<LogEntryData> entriesToSend = log.getEntriesFrom(peerNextIndex);
+            for (int i = 0; i < entriesToSend.size(); i++) {
+                LogEntryData e = entriesToSend.get(i);
+                long entryIndex = peerNextIndex + i;
+                com.auditraft.grpc.LogEntry protoEntry = com.auditraft.grpc.LogEntry.newBuilder()
+                        .setTerm(e.getTerm())
+                        .setIndex(entryIndex)
+                        .setKey(e.getKey())
+                        .setValue(e.getValue())
+                        .build();
+                builder.addEntries(protoEntry);
+            }
         }
+
+        return builder.build();
     }
 
     private void broadcastHeartbeats() {
-        lock.readLock().lock();
         long currentTermSnapshot;
-        long commitIndexSnapshot;
+        List<AppendRequest> requests = new ArrayList<>();
+        List<RaftPeerClient> peerSnapshot;
+        List<String> peerIds = new ArrayList<>();
+
+        lock.readLock().lock();
         try {
             if (this.state != State.LEADER) return;
             currentTermSnapshot = this.currentTerm;
-            commitIndexSnapshot = this.commitIndex;
+            peerSnapshot = new ArrayList<>(peers);
+
+            for (RaftPeerClient peer : peerSnapshot) {
+                String peerId = peer.getPeerId();
+                peerIds.add(peerId);
+                requests.add(buildAppendRequestForPeer(peerId, currentTermSnapshot));
+            }
         } finally { lock.readLock().unlock(); }
 
-        for (RaftPeerClient peer : peers) {
-            // Check if we have entries to send to this peer
-            // (Simplified: Sending the whole log for now. In Phase 5 we'll track nextIndex per peer)
-            AppendRequest request = AppendRequest.newBuilder()
-                    .setTerm(currentTermSnapshot)
-                    .setLeaderId(this.nodeId)
-                    .setLeaderCommit(commitIndexSnapshot)
-                    .addAllEntries(log) 
-                    .build();
+        // Send RPCs outside the lock
+        for (int i = 0; i < peerSnapshot.size(); i++) {
+            RaftPeerClient peer = peerSnapshot.get(i);
+            AppendRequest request = requests.get(i);
+            String peerId = peerIds.get(i);
+
+            // Calculate the last entry index we're sending to this peer
+            long lastEntryIndex;
+            if (request.getEntriesCount() > 0) {
+                lastEntryIndex = request.getPrevLogIndex() + request.getEntriesCount();
+            } else {
+                lastEntryIndex = request.getPrevLogIndex();
+            }
+            final long capturedLastEntryIndex = lastEntryIndex;
 
             peer.sendAppendEntries(request, new StreamObserver<AppendResponse>() {
                 @Override public void onNext(AppendResponse response) {
-                    if (response.getTerm() > currentTermSnapshot) stepDown(response.getTerm());
-                    // Logic for updating commitIndex goes here next!
+                    handleAppendResponse(peerId, response.getSuccess(), response.getTerm(), capturedLastEntryIndex);
                 }
                 @Override public void onError(Throwable t) {}
                 @Override public void onCompleted() {}
