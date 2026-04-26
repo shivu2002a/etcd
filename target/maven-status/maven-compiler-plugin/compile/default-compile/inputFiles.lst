@@ -14,6 +14,8 @@
 /home/shivanagoudaagasimani/audit-raft-db/target/generated-sources/protobuf/java/com/auditraft/grpc/GetRequestOrBuilder.java
 /home/shivanagoudaagasimani/audit-raft-db/target/generated-sources/protobuf/java/com/auditraft/grpc/GetResponse.java
 /home/shivanagoudaagasimani/audit-raft-db/target/generated-sources/protobuf/java/com/auditraft/grpc/GetResponseOrBuilder.java
+/home/shivanagoudaagasimani/audit-raft-db/target/generated-sources/protobuf/java/com/auditraft/grpc/LogEntry.java
+/home/shivanagoudaagasimani/audit-raft-db/target/generated-sources/protobuf/java/com/auditraft/grpc/LogEntryOrBuilder.java
 /home/shivanagoudaagasimani/audit-raft-db/target/generated-sources/protobuf/java/com/auditraft/grpc/PutRequest.java
 /home/shivanagoudaagasimani/audit-raft-db/target/generated-sources/protobuf/java/com/auditraft/grpc/PutRequestOrBuilder.java
 /home/shivanagoudaagasimani/audit-raft-db/target/generated-sources/protobuf/java/com/auditraft/grpc/PutResponse.java

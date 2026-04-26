@@ -7,6 +7,7 @@ com/auditraft/grpc/AuditConfigClientServiceGrpc$3.class
 com/auditraft/grpc/AppendResponse.class
 com/auditraft/grpc/AppendRequestOrBuilder.class
 com/auditraft/grpc/PutResponse$Builder.class
+com/auditraft/grpc/LogEntry$Builder.class
 com/auditraft/grpc/GetResponseOrBuilder.class
 com/auditraft/grpc/PutResponseOrBuilder.class
 com/auditraft/grpc/PutRequestOrBuilder.class
@@ -22,6 +23,7 @@ com/auditraft/grpc/VoteRequest.class
 com/auditraft/grpc/AuditConfigClientServiceGrpc$AuditConfigClientServiceFutureStub.class
 com/auditraft/grpc/VoteResponse$1.class
 com/auditraft/grpc/AuditConfigClientServiceGrpc$AuditConfigClientServiceStub.class
+com/auditraft/grpc/LogEntryOrBuilder.class
 com/auditraft/grpc/RaftInternalServiceGrpc$RaftInternalServiceFutureStub.class
 com/auditraft/grpc/GetResponse$1.class
 com/auditraft/grpc/AuditConfigClientServiceGrpc$MethodHandlers.class
@@ -33,6 +35,7 @@ com/auditraft/grpc/RaftInternalServiceGrpc$RaftInternalServiceMethodDescriptorSu
 com/auditraft/grpc/AppendRequest$Builder.class
 com/auditraft/grpc/AuditConfigClientServiceGrpc$1.class
 com/auditraft/grpc/PutRequest$1.class
+com/auditraft/grpc/LogEntry.class
 com/auditraft/grpc/RaftInternalServiceGrpc$RaftInternalServiceFileDescriptorSupplier.class
 com/auditraft/grpc/GetResponse.class
 com/auditraft/grpc/RaftInternalServiceGrpc$2.class
@@ -48,6 +51,7 @@ com/auditraft/grpc/VoteResponse$Builder.class
 com/auditraft/grpc/GetRequestOrBuilder.class
 com/auditraft/grpc/RaftInternalServiceGrpc$RaftInternalServiceImplBase.class
 com/auditraft/grpc/RaftInternalServiceGrpc$RaftInternalServiceBlockingStub.class
+com/auditraft/grpc/LogEntry$1.class
 com/auditraft/grpc/RaftInternalServiceGrpc$1.class
 com/auditraft/grpc/VoteResponseOrBuilder.class
 com/auditraft/rpc/RaftInternalServiceImpl.class
