@@ -59,3 +59,12 @@ grpcurl -plaintext -d '{"key": "max_connections"}' localhost:50051 auditraft.Aud
 />
 
 If it returns 5000, you have successfully built a persistent, crash-tolerant distributed system.
+
+Kill all java processes
+<bash pkill -9 -f java>
+
+Kill particular 
+
+ss -tlnp | grep 50051
+# Look for the PID in the output, then:
+kill <PID>

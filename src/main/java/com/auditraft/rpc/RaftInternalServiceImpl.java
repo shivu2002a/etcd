@@ -6,6 +6,7 @@ import com.auditraft.grpc.AppendResponse;
 import com.auditraft.grpc.RaftInternalServiceGrpc;
 import com.auditraft.grpc.VoteRequest;
 import com.auditraft.grpc.VoteResponse;
+
 import io.grpc.stub.StreamObserver;
 
 public class RaftInternalServiceImpl extends RaftInternalServiceGrpc.RaftInternalServiceImplBase {
@@ -37,10 +38,14 @@ public class RaftInternalServiceImpl extends RaftInternalServiceGrpc.RaftInterna
 
             String votedFor = raftNode.getVotedFor();
             if (votedFor == null || votedFor.equals(request.getCandidateId())) {
-                // TODO: Add log up-to-date check here once RocksDB is integrated (Phase 3)
-                voteGranted = true;
-                raftNode.grantVote(request.getCandidateId());
-                System.out.println("Node " + raftNode.getNodeId() + " granted vote to " + request.getCandidateId());
+                // Log up-to-date check (Raft §5.4.1)
+                if (!raftNode.isLogUpToDate(request.getLastLogTerm(), request.getLastLogIndex())) {
+                    voteGranted = false;
+                } else {
+                    voteGranted = true;
+                    raftNode.grantVote(request.getCandidateId());
+                    System.out.println("Node " + raftNode.getNodeId() + " granted vote to " + request.getCandidateId());
+                }
             }
         }
 
@@ -55,27 +60,7 @@ public class RaftInternalServiceImpl extends RaftInternalServiceGrpc.RaftInterna
 
     @Override
     public void appendEntries(AppendRequest request, StreamObserver<AppendResponse> responseObserver) {
-        // This acts as our Heartbeat receiver (and eventually log receiver)
-        boolean success = false;
-        long currentTerm = raftNode.getCurrentTerm();
-
-        if (request.getTerm() < currentTerm) {
-            // UPDATED: Pass the whole request object instead of just pieces
-            raftNode.resetHeartbeat(request); 
-            success = true;
-        } else {
-            // Recognize this node as the valid leader and reset our election timer
-            raftNode.resetHeartbeat(request);
-            success = true;
-            
-            // TODO: Actually append the entries to RocksDB WAL here (Phase 3)
-        }
-
-        AppendResponse response = AppendResponse.newBuilder()
-                .setTerm(raftNode.getCurrentTerm())
-                .setSuccess(success)
-                .build();
-
+        AppendResponse response = raftNode.handleAppendEntries(request);
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }

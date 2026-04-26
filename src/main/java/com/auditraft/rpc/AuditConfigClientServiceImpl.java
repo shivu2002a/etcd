@@ -6,6 +6,7 @@ import com.auditraft.grpc.GetRequest;
 import com.auditraft.grpc.GetResponse;
 import com.auditraft.grpc.PutRequest;
 import com.auditraft.grpc.PutResponse;
+
 import io.grpc.stub.StreamObserver;
 
 public class AuditConfigClientServiceImpl extends AuditConfigClientServiceGrpc.AuditConfigClientServiceImplBase {
@@ -31,17 +32,10 @@ public class AuditConfigClientServiceImpl extends AuditConfigClientServiceGrpc.A
             return;
         }
 
-        // 2. WE ARE THE LEADER. 
-        // (In full Raft, we would broadcast this to followers here. For now, just save it).
-        System.out.println("💾 [" + raftNode.getNodeId() + "] LEADER accepted PutConfig: " + request.getKey() + "=" + request.getValue());
-        raftNode.putData(request.getKey(), request.getValue());
-
-        PutResponse response = PutResponse.newBuilder()
-                .setSuccess(true)
-                .setLeaderId(raftNode.getNodeId())
-                .build();
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+        // 2. WE ARE THE LEADER — append to replicated log, response deferred until commit
+        System.out.println("📝 [" + raftNode.getNodeId() + "] LEADER accepted PutConfig: " + request.getKey() + "=" + request.getValue());
+        raftNode.appendEntry(request.getKey(), request.getValue(), responseObserver);
+        // Response will be sent by RaftNode.applyCommittedEntries() after majority replication
     }
 
     @Override
