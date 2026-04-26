@@ -15,31 +15,75 @@ public interface AppendRequestOrBuilder extends
   long getTerm();
 
   /**
-   * <code>string leader_id = 2;</code>
+   * <code>string leaderId = 2;</code>
    * @return The leaderId.
    */
   java.lang.String getLeaderId();
   /**
-   * <code>string leader_id = 2;</code>
+   * <code>string leaderId = 2;</code>
    * @return The bytes for leaderId.
    */
   com.google.protobuf.ByteString
       getLeaderIdBytes();
 
   /**
-   * <code>int64 prev_log_index = 3;</code>
+   * <code>int64 prevLogIndex = 3;</code>
    * @return The prevLogIndex.
    */
   long getPrevLogIndex();
 
   /**
-   * <code>int64 prev_log_term = 4;</code>
+   * <code>int64 prevLogTerm = 4;</code>
    * @return The prevLogTerm.
    */
   long getPrevLogTerm();
 
   /**
-   * <code>int64 leader_commit = 6;</code>
+   * <pre>
+   * The new data to replicate
+   * </pre>
+   *
+   * <code>repeated .auditraft.LogEntry entries = 5;</code>
+   */
+  java.util.List<com.auditraft.grpc.LogEntry> 
+      getEntriesList();
+  /**
+   * <pre>
+   * The new data to replicate
+   * </pre>
+   *
+   * <code>repeated .auditraft.LogEntry entries = 5;</code>
+   */
+  com.auditraft.grpc.LogEntry getEntries(int index);
+  /**
+   * <pre>
+   * The new data to replicate
+   * </pre>
+   *
+   * <code>repeated .auditraft.LogEntry entries = 5;</code>
+   */
+  int getEntriesCount();
+  /**
+   * <pre>
+   * The new data to replicate
+   * </pre>
+   *
+   * <code>repeated .auditraft.LogEntry entries = 5;</code>
+   */
+  java.util.List<? extends com.auditraft.grpc.LogEntryOrBuilder> 
+      getEntriesOrBuilderList();
+  /**
+   * <pre>
+   * The new data to replicate
+   * </pre>
+   *
+   * <code>repeated .auditraft.LogEntry entries = 5;</code>
+   */
+  com.auditraft.grpc.LogEntryOrBuilder getEntriesOrBuilder(
+      int index);
+
+  /**
+   * <code>int64 leaderCommit = 6;</code>
    * @return The leaderCommit.
    */
   long getLeaderCommit();

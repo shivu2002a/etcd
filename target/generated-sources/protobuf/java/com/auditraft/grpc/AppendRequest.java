@@ -18,6 +18,7 @@ private static final long serialVersionUID = 0L;
   }
   private AppendRequest() {
     leaderId_ = "";
+    entries_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -51,11 +52,11 @@ private static final long serialVersionUID = 0L;
     return term_;
   }
 
-  public static final int LEADER_ID_FIELD_NUMBER = 2;
+  public static final int LEADERID_FIELD_NUMBER = 2;
   @SuppressWarnings("serial")
   private volatile java.lang.Object leaderId_ = "";
   /**
-   * <code>string leader_id = 2;</code>
+   * <code>string leaderId = 2;</code>
    * @return The leaderId.
    */
   @java.lang.Override
@@ -72,7 +73,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>string leader_id = 2;</code>
+   * <code>string leaderId = 2;</code>
    * @return The bytes for leaderId.
    */
   @java.lang.Override
@@ -90,10 +91,10 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int PREV_LOG_INDEX_FIELD_NUMBER = 3;
+  public static final int PREVLOGINDEX_FIELD_NUMBER = 3;
   private long prevLogIndex_ = 0L;
   /**
-   * <code>int64 prev_log_index = 3;</code>
+   * <code>int64 prevLogIndex = 3;</code>
    * @return The prevLogIndex.
    */
   @java.lang.Override
@@ -101,10 +102,10 @@ private static final long serialVersionUID = 0L;
     return prevLogIndex_;
   }
 
-  public static final int PREV_LOG_TERM_FIELD_NUMBER = 4;
+  public static final int PREVLOGTERM_FIELD_NUMBER = 4;
   private long prevLogTerm_ = 0L;
   /**
-   * <code>int64 prev_log_term = 4;</code>
+   * <code>int64 prevLogTerm = 4;</code>
    * @return The prevLogTerm.
    */
   @java.lang.Override
@@ -112,10 +113,71 @@ private static final long serialVersionUID = 0L;
     return prevLogTerm_;
   }
 
-  public static final int LEADER_COMMIT_FIELD_NUMBER = 6;
+  public static final int ENTRIES_FIELD_NUMBER = 5;
+  @SuppressWarnings("serial")
+  private java.util.List<com.auditraft.grpc.LogEntry> entries_;
+  /**
+   * <pre>
+   * The new data to replicate
+   * </pre>
+   *
+   * <code>repeated .auditraft.LogEntry entries = 5;</code>
+   */
+  @java.lang.Override
+  public java.util.List<com.auditraft.grpc.LogEntry> getEntriesList() {
+    return entries_;
+  }
+  /**
+   * <pre>
+   * The new data to replicate
+   * </pre>
+   *
+   * <code>repeated .auditraft.LogEntry entries = 5;</code>
+   */
+  @java.lang.Override
+  public java.util.List<? extends com.auditraft.grpc.LogEntryOrBuilder> 
+      getEntriesOrBuilderList() {
+    return entries_;
+  }
+  /**
+   * <pre>
+   * The new data to replicate
+   * </pre>
+   *
+   * <code>repeated .auditraft.LogEntry entries = 5;</code>
+   */
+  @java.lang.Override
+  public int getEntriesCount() {
+    return entries_.size();
+  }
+  /**
+   * <pre>
+   * The new data to replicate
+   * </pre>
+   *
+   * <code>repeated .auditraft.LogEntry entries = 5;</code>
+   */
+  @java.lang.Override
+  public com.auditraft.grpc.LogEntry getEntries(int index) {
+    return entries_.get(index);
+  }
+  /**
+   * <pre>
+   * The new data to replicate
+   * </pre>
+   *
+   * <code>repeated .auditraft.LogEntry entries = 5;</code>
+   */
+  @java.lang.Override
+  public com.auditraft.grpc.LogEntryOrBuilder getEntriesOrBuilder(
+      int index) {
+    return entries_.get(index);
+  }
+
+  public static final int LEADERCOMMIT_FIELD_NUMBER = 6;
   private long leaderCommit_ = 0L;
   /**
-   * <code>int64 leader_commit = 6;</code>
+   * <code>int64 leaderCommit = 6;</code>
    * @return The leaderCommit.
    */
   @java.lang.Override
@@ -149,6 +211,9 @@ private static final long serialVersionUID = 0L;
     if (prevLogTerm_ != 0L) {
       output.writeInt64(4, prevLogTerm_);
     }
+    for (int i = 0; i < entries_.size(); i++) {
+      output.writeMessage(5, entries_.get(i));
+    }
     if (leaderCommit_ != 0L) {
       output.writeInt64(6, leaderCommit_);
     }
@@ -175,6 +240,10 @@ private static final long serialVersionUID = 0L;
     if (prevLogTerm_ != 0L) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(4, prevLogTerm_);
+    }
+    for (int i = 0; i < entries_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(5, entries_.get(i));
     }
     if (leaderCommit_ != 0L) {
       size += com.google.protobuf.CodedOutputStream
@@ -203,6 +272,8 @@ private static final long serialVersionUID = 0L;
         != other.getPrevLogIndex()) return false;
     if (getPrevLogTerm()
         != other.getPrevLogTerm()) return false;
+    if (!getEntriesList()
+        .equals(other.getEntriesList())) return false;
     if (getLeaderCommit()
         != other.getLeaderCommit()) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
@@ -219,15 +290,19 @@ private static final long serialVersionUID = 0L;
     hash = (37 * hash) + TERM_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
         getTerm());
-    hash = (37 * hash) + LEADER_ID_FIELD_NUMBER;
+    hash = (37 * hash) + LEADERID_FIELD_NUMBER;
     hash = (53 * hash) + getLeaderId().hashCode();
-    hash = (37 * hash) + PREV_LOG_INDEX_FIELD_NUMBER;
+    hash = (37 * hash) + PREVLOGINDEX_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
         getPrevLogIndex());
-    hash = (37 * hash) + PREV_LOG_TERM_FIELD_NUMBER;
+    hash = (37 * hash) + PREVLOGTERM_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
         getPrevLogTerm());
-    hash = (37 * hash) + LEADER_COMMIT_FIELD_NUMBER;
+    if (getEntriesCount() > 0) {
+      hash = (37 * hash) + ENTRIES_FIELD_NUMBER;
+      hash = (53 * hash) + getEntriesList().hashCode();
+    }
+    hash = (37 * hash) + LEADERCOMMIT_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
         getLeaderCommit());
     hash = (29 * hash) + getUnknownFields().hashCode();
@@ -365,6 +440,13 @@ private static final long serialVersionUID = 0L;
       leaderId_ = "";
       prevLogIndex_ = 0L;
       prevLogTerm_ = 0L;
+      if (entriesBuilder_ == null) {
+        entries_ = java.util.Collections.emptyList();
+      } else {
+        entries_ = null;
+        entriesBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000010);
       leaderCommit_ = 0L;
       return this;
     }
@@ -392,9 +474,22 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.auditraft.grpc.AppendRequest buildPartial() {
       com.auditraft.grpc.AppendRequest result = new com.auditraft.grpc.AppendRequest(this);
+      buildPartialRepeatedFields(result);
       if (bitField0_ != 0) { buildPartial0(result); }
       onBuilt();
       return result;
+    }
+
+    private void buildPartialRepeatedFields(com.auditraft.grpc.AppendRequest result) {
+      if (entriesBuilder_ == null) {
+        if (((bitField0_ & 0x00000010) != 0)) {
+          entries_ = java.util.Collections.unmodifiableList(entries_);
+          bitField0_ = (bitField0_ & ~0x00000010);
+        }
+        result.entries_ = entries_;
+      } else {
+        result.entries_ = entriesBuilder_.build();
+      }
     }
 
     private void buildPartial0(com.auditraft.grpc.AppendRequest result) {
@@ -411,7 +506,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000008) != 0)) {
         result.prevLogTerm_ = prevLogTerm_;
       }
-      if (((from_bitField0_ & 0x00000010) != 0)) {
+      if (((from_bitField0_ & 0x00000020) != 0)) {
         result.leaderCommit_ = leaderCommit_;
       }
     }
@@ -474,6 +569,32 @@ private static final long serialVersionUID = 0L;
       if (other.getPrevLogTerm() != 0L) {
         setPrevLogTerm(other.getPrevLogTerm());
       }
+      if (entriesBuilder_ == null) {
+        if (!other.entries_.isEmpty()) {
+          if (entries_.isEmpty()) {
+            entries_ = other.entries_;
+            bitField0_ = (bitField0_ & ~0x00000010);
+          } else {
+            ensureEntriesIsMutable();
+            entries_.addAll(other.entries_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.entries_.isEmpty()) {
+          if (entriesBuilder_.isEmpty()) {
+            entriesBuilder_.dispose();
+            entriesBuilder_ = null;
+            entries_ = other.entries_;
+            bitField0_ = (bitField0_ & ~0x00000010);
+            entriesBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getEntriesFieldBuilder() : null;
+          } else {
+            entriesBuilder_.addAllMessages(other.entries_);
+          }
+        }
+      }
       if (other.getLeaderCommit() != 0L) {
         setLeaderCommit(other.getLeaderCommit());
       }
@@ -523,9 +644,22 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000008;
               break;
             } // case 32
+            case 42: {
+              com.auditraft.grpc.LogEntry m =
+                  input.readMessage(
+                      com.auditraft.grpc.LogEntry.parser(),
+                      extensionRegistry);
+              if (entriesBuilder_ == null) {
+                ensureEntriesIsMutable();
+                entries_.add(m);
+              } else {
+                entriesBuilder_.addMessage(m);
+              }
+              break;
+            } // case 42
             case 48: {
               leaderCommit_ = input.readInt64();
-              bitField0_ |= 0x00000010;
+              bitField0_ |= 0x00000020;
               break;
             } // case 48
             default: {
@@ -579,7 +713,7 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object leaderId_ = "";
     /**
-     * <code>string leader_id = 2;</code>
+     * <code>string leaderId = 2;</code>
      * @return The leaderId.
      */
     public java.lang.String getLeaderId() {
@@ -595,7 +729,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>string leader_id = 2;</code>
+     * <code>string leaderId = 2;</code>
      * @return The bytes for leaderId.
      */
     public com.google.protobuf.ByteString
@@ -612,7 +746,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>string leader_id = 2;</code>
+     * <code>string leaderId = 2;</code>
      * @param value The leaderId to set.
      * @return This builder for chaining.
      */
@@ -625,7 +759,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>string leader_id = 2;</code>
+     * <code>string leaderId = 2;</code>
      * @return This builder for chaining.
      */
     public Builder clearLeaderId() {
@@ -635,7 +769,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>string leader_id = 2;</code>
+     * <code>string leaderId = 2;</code>
      * @param value The bytes for leaderId to set.
      * @return This builder for chaining.
      */
@@ -651,7 +785,7 @@ private static final long serialVersionUID = 0L;
 
     private long prevLogIndex_ ;
     /**
-     * <code>int64 prev_log_index = 3;</code>
+     * <code>int64 prevLogIndex = 3;</code>
      * @return The prevLogIndex.
      */
     @java.lang.Override
@@ -659,7 +793,7 @@ private static final long serialVersionUID = 0L;
       return prevLogIndex_;
     }
     /**
-     * <code>int64 prev_log_index = 3;</code>
+     * <code>int64 prevLogIndex = 3;</code>
      * @param value The prevLogIndex to set.
      * @return This builder for chaining.
      */
@@ -671,7 +805,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>int64 prev_log_index = 3;</code>
+     * <code>int64 prevLogIndex = 3;</code>
      * @return This builder for chaining.
      */
     public Builder clearPrevLogIndex() {
@@ -683,7 +817,7 @@ private static final long serialVersionUID = 0L;
 
     private long prevLogTerm_ ;
     /**
-     * <code>int64 prev_log_term = 4;</code>
+     * <code>int64 prevLogTerm = 4;</code>
      * @return The prevLogTerm.
      */
     @java.lang.Override
@@ -691,7 +825,7 @@ private static final long serialVersionUID = 0L;
       return prevLogTerm_;
     }
     /**
-     * <code>int64 prev_log_term = 4;</code>
+     * <code>int64 prevLogTerm = 4;</code>
      * @param value The prevLogTerm to set.
      * @return This builder for chaining.
      */
@@ -703,7 +837,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>int64 prev_log_term = 4;</code>
+     * <code>int64 prevLogTerm = 4;</code>
      * @return This builder for chaining.
      */
     public Builder clearPrevLogTerm() {
@@ -713,9 +847,321 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    private java.util.List<com.auditraft.grpc.LogEntry> entries_ =
+      java.util.Collections.emptyList();
+    private void ensureEntriesIsMutable() {
+      if (!((bitField0_ & 0x00000010) != 0)) {
+        entries_ = new java.util.ArrayList<com.auditraft.grpc.LogEntry>(entries_);
+        bitField0_ |= 0x00000010;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        com.auditraft.grpc.LogEntry, com.auditraft.grpc.LogEntry.Builder, com.auditraft.grpc.LogEntryOrBuilder> entriesBuilder_;
+
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public java.util.List<com.auditraft.grpc.LogEntry> getEntriesList() {
+      if (entriesBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(entries_);
+      } else {
+        return entriesBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public int getEntriesCount() {
+      if (entriesBuilder_ == null) {
+        return entries_.size();
+      } else {
+        return entriesBuilder_.getCount();
+      }
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public com.auditraft.grpc.LogEntry getEntries(int index) {
+      if (entriesBuilder_ == null) {
+        return entries_.get(index);
+      } else {
+        return entriesBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public Builder setEntries(
+        int index, com.auditraft.grpc.LogEntry value) {
+      if (entriesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureEntriesIsMutable();
+        entries_.set(index, value);
+        onChanged();
+      } else {
+        entriesBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public Builder setEntries(
+        int index, com.auditraft.grpc.LogEntry.Builder builderForValue) {
+      if (entriesBuilder_ == null) {
+        ensureEntriesIsMutable();
+        entries_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        entriesBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public Builder addEntries(com.auditraft.grpc.LogEntry value) {
+      if (entriesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureEntriesIsMutable();
+        entries_.add(value);
+        onChanged();
+      } else {
+        entriesBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public Builder addEntries(
+        int index, com.auditraft.grpc.LogEntry value) {
+      if (entriesBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureEntriesIsMutable();
+        entries_.add(index, value);
+        onChanged();
+      } else {
+        entriesBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public Builder addEntries(
+        com.auditraft.grpc.LogEntry.Builder builderForValue) {
+      if (entriesBuilder_ == null) {
+        ensureEntriesIsMutable();
+        entries_.add(builderForValue.build());
+        onChanged();
+      } else {
+        entriesBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public Builder addEntries(
+        int index, com.auditraft.grpc.LogEntry.Builder builderForValue) {
+      if (entriesBuilder_ == null) {
+        ensureEntriesIsMutable();
+        entries_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        entriesBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public Builder addAllEntries(
+        java.lang.Iterable<? extends com.auditraft.grpc.LogEntry> values) {
+      if (entriesBuilder_ == null) {
+        ensureEntriesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, entries_);
+        onChanged();
+      } else {
+        entriesBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public Builder clearEntries() {
+      if (entriesBuilder_ == null) {
+        entries_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+      } else {
+        entriesBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public Builder removeEntries(int index) {
+      if (entriesBuilder_ == null) {
+        ensureEntriesIsMutable();
+        entries_.remove(index);
+        onChanged();
+      } else {
+        entriesBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public com.auditraft.grpc.LogEntry.Builder getEntriesBuilder(
+        int index) {
+      return getEntriesFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public com.auditraft.grpc.LogEntryOrBuilder getEntriesOrBuilder(
+        int index) {
+      if (entriesBuilder_ == null) {
+        return entries_.get(index);  } else {
+        return entriesBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public java.util.List<? extends com.auditraft.grpc.LogEntryOrBuilder> 
+         getEntriesOrBuilderList() {
+      if (entriesBuilder_ != null) {
+        return entriesBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(entries_);
+      }
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public com.auditraft.grpc.LogEntry.Builder addEntriesBuilder() {
+      return getEntriesFieldBuilder().addBuilder(
+          com.auditraft.grpc.LogEntry.getDefaultInstance());
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public com.auditraft.grpc.LogEntry.Builder addEntriesBuilder(
+        int index) {
+      return getEntriesFieldBuilder().addBuilder(
+          index, com.auditraft.grpc.LogEntry.getDefaultInstance());
+    }
+    /**
+     * <pre>
+     * The new data to replicate
+     * </pre>
+     *
+     * <code>repeated .auditraft.LogEntry entries = 5;</code>
+     */
+    public java.util.List<com.auditraft.grpc.LogEntry.Builder> 
+         getEntriesBuilderList() {
+      return getEntriesFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        com.auditraft.grpc.LogEntry, com.auditraft.grpc.LogEntry.Builder, com.auditraft.grpc.LogEntryOrBuilder> 
+        getEntriesFieldBuilder() {
+      if (entriesBuilder_ == null) {
+        entriesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            com.auditraft.grpc.LogEntry, com.auditraft.grpc.LogEntry.Builder, com.auditraft.grpc.LogEntryOrBuilder>(
+                entries_,
+                ((bitField0_ & 0x00000010) != 0),
+                getParentForChildren(),
+                isClean());
+        entries_ = null;
+      }
+      return entriesBuilder_;
+    }
+
     private long leaderCommit_ ;
     /**
-     * <code>int64 leader_commit = 6;</code>
+     * <code>int64 leaderCommit = 6;</code>
      * @return The leaderCommit.
      */
     @java.lang.Override
@@ -723,23 +1169,23 @@ private static final long serialVersionUID = 0L;
       return leaderCommit_;
     }
     /**
-     * <code>int64 leader_commit = 6;</code>
+     * <code>int64 leaderCommit = 6;</code>
      * @param value The leaderCommit to set.
      * @return This builder for chaining.
      */
     public Builder setLeaderCommit(long value) {
 
       leaderCommit_ = value;
-      bitField0_ |= 0x00000010;
+      bitField0_ |= 0x00000020;
       onChanged();
       return this;
     }
     /**
-     * <code>int64 leader_commit = 6;</code>
+     * <code>int64 leaderCommit = 6;</code>
      * @return This builder for chaining.
      */
     public Builder clearLeaderCommit() {
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000020);
       leaderCommit_ = 0L;
       onChanged();
       return this;

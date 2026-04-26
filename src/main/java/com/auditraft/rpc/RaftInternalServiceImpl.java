@@ -60,10 +60,12 @@ public class RaftInternalServiceImpl extends RaftInternalServiceGrpc.RaftInterna
         long currentTerm = raftNode.getCurrentTerm();
 
         if (request.getTerm() < currentTerm) {
-            success = false; // Reject, leader is stale
+            // UPDATED: Pass the whole request object instead of just pieces
+            raftNode.resetHeartbeat(request); 
+            success = true;
         } else {
             // Recognize this node as the valid leader and reset our election timer
-            raftNode.resetHeartbeat(request.getTerm(), request.getLeaderId());
+            raftNode.resetHeartbeat(request);
             success = true;
             
             // TODO: Actually append the entries to RocksDB WAL here (Phase 3)
