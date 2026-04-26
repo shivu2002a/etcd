@@ -1,16 +1,15 @@
 package com.auditraft;
 
+import java.io.IOException;
+
 import com.auditraft.core.RaftNode;
+import com.auditraft.rpc.AuditConfigClientServiceImpl;
 import com.auditraft.rpc.RaftInternalServiceImpl;
 import com.auditraft.rpc.RaftPeerClient;
+
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-
 import io.grpc.protobuf.services.ProtoReflectionService;
-
-import com.auditraft.rpc.AuditConfigClientServiceImpl;
-
-import java.io.IOException;
 
 public class RaftApplication {
 
@@ -51,6 +50,11 @@ public class RaftApplication {
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
+
+        // 4. Start the Raft election timer AFTER peers are registered
+        raftNode.start();
+        System.out.println("✅ [" + nodeId + "] Raft node started with " + (args.length - 2) + " peers");
+
         server.awaitTermination();
     }
 }

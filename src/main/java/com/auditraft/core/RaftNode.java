@@ -53,6 +53,9 @@ public class RaftNode {
     private static final int MAX_ELECTION_TIMEOUT = 4000;
     private static final int HEARTBEAT_INTERVAL = 500;
 
+    // Track the heartbeat task so we can cancel it on step-down
+    private java.util.concurrent.ScheduledFuture<?> heartbeatTask = null;
+
     // Replicated log (uses LogEntryData, not proto LogEntry)
     private final ReplicatedLog log = new ReplicatedLog();
 
@@ -79,6 +82,14 @@ public class RaftNode {
         }
 
         resetTimer();
+        // NOTE: Election timer is NOT started here. Call start() after peers are registered.
+    }
+
+    /**
+     * Start the election timer. Call this AFTER all peers have been registered
+     * to prevent premature elections with zero peers.
+     */
+    public void start() {
         startElectionTimer();
     }
 
@@ -167,6 +178,11 @@ public class RaftNode {
             this.currentTerm = newTerm;
             this.state = State.FOLLOWER;
             this.votedFor = null;
+            // Cancel heartbeat task if we were leader
+            if (heartbeatTask != null) {
+                heartbeatTask.cancel(false);
+                heartbeatTask = null;
+            }
             resetTimer();
             failPendingRequests();
         } finally { lock.writeLock().unlock(); }
@@ -200,6 +216,11 @@ public class RaftNode {
             this.knownLeader = leaderId;
             this.currentTerm = leaderTerm;
             this.state = State.FOLLOWER;
+            // Cancel heartbeat task if we were leader
+            if (heartbeatTask != null) {
+                heartbeatTask.cancel(false);
+                heartbeatTask = null;
+            }
             resetTimer();
         }
     }
@@ -223,7 +244,9 @@ public class RaftNode {
                         .build();
             }
 
-            // Valid leader — reset heartbeat (internal, already holding lock)
+            // Valid leader — ALWAYS reset heartbeat timer to prevent unnecessary elections.
+            // This must happen before any consistency checks so that even rejected
+            // AppendEntries from a valid leader prevent election timeouts.
             resetHeartbeatInternal(requestTerm, request.getLeaderId());
 
             long prevLogIndex = request.getPrevLogIndex();
@@ -231,16 +254,18 @@ public class RaftNode {
 
             // 2. Reply false if log doesn't contain an entry at prevLogIndex with matching term
             if (prevLogIndex > 0) {
-                long localTerm = log.getTermAt(prevLogIndex);
-                if (localTerm == 0 && prevLogIndex > log.getLastIndex()) {
-                    // We don't have an entry at prevLogIndex
+                if (prevLogIndex > log.getLastIndex()) {
+                    // We don't have an entry at prevLogIndex at all
+                    System.out.println("⚠️ [" + nodeId + "] Log too short: prevLogIndex=" + prevLogIndex + " but lastIndex=" + log.getLastIndex());
                     return AppendResponse.newBuilder()
                             .setTerm(this.currentTerm)
                             .setSuccess(false)
                             .build();
                 }
+                long localTerm = log.getTermAt(prevLogIndex);
                 if (localTerm != prevLogTerm) {
                     // Term mismatch at prevLogIndex
+                    System.out.println("⚠️ [" + nodeId + "] Term mismatch at index " + prevLogIndex + ": local=" + localTerm + " leader=" + prevLogTerm);
                     return AppendResponse.newBuilder()
                             .setTerm(this.currentTerm)
                             .setSuccess(false)
@@ -275,7 +300,12 @@ public class RaftNode {
 
             // 5. Update commitIndex
             if (request.getLeaderCommit() > this.commitIndex) {
-                this.commitIndex = Math.min(request.getLeaderCommit(), lastNewEntryIndex);
+                if (entries.isEmpty()) {
+                    // Pure heartbeat — advance commitIndex to leaderCommit but not beyond our log
+                    this.commitIndex = Math.min(request.getLeaderCommit(), log.getLastIndex());
+                } else {
+                    this.commitIndex = Math.min(request.getLeaderCommit(), lastNewEntryIndex);
+                }
                 applyCommittedEntries();
             }
 
@@ -511,7 +541,11 @@ public class RaftNode {
             }
 
             System.out.println("👑 [" + nodeId + "] Won election! Now LEADER for term " + currentTerm);
-            timerExecutor.scheduleAtFixedRate(this::broadcastHeartbeats, 0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
+            // Cancel any previous heartbeat task to prevent accumulation
+            if (heartbeatTask != null) {
+                heartbeatTask.cancel(false);
+            }
+            heartbeatTask = timerExecutor.scheduleAtFixedRate(this::broadcastHeartbeats, 0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
         } finally { lock.writeLock().unlock(); }
     }
 
